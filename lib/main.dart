@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,15 +13,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Musicify',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF1E2329),
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Music Player App'),
-        ),
-      ),
+      home: const HomeScreen(),
     );
   }
 }
