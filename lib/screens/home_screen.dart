@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import '../widgets/player_controls.dart';
+import '../services/audio_service.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final AudioService _audioService = AudioService();
+  String? _currentSongPath;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +45,10 @@ class HomeScreen extends StatelessWidget {
             style: TextStyle(fontSize: 18, color: Colors.grey),
           ),
           const Spacer(),
-          const PlayerControls(),
+          PlayerControls(
+            audioService: _audioService,
+            currentSongPath: _currentSongPath,
+          ),
           const SizedBox(height: 48),
         ],
       ),
