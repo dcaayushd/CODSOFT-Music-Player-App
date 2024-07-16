@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/player_controls.dart';
 import '../services/audio_service.dart';
+import '../services/file_service.dart';
+import '../models/song.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -11,7 +13,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AudioService _audioService = AudioService();
-  String? _currentSongPath;
+  final FileService _fileService = FileService();
+  Song? _currentSong;
+
+  Future<void> _pickSong() async {
+    final song = await _fileService.pickSong();
+    if (song != null) {
+      setState(() {
+        _currentSong = song;
+      });
+      _audioService.playPause(song.filePath);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,22 +48,26 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Icon(Icons.music_note, size: 100, color: Colors.grey),
           ),
           const SizedBox(height: 32),
-          const Text(
-            'No song selected',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Text(
+            _currentSong?.title ?? 'No song selected',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Artist',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+          Text(
+            _currentSong?.artist ?? 'Artist',
+            style: const TextStyle(fontSize: 18, color: Colors.grey),
           ),
           const Spacer(),
           PlayerControls(
             audioService: _audioService,
-            currentSongPath: _currentSongPath,
+            currentSongPath: _currentSong?.filePath,
           ),
           const SizedBox(height: 48),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _pickSong,
+        child: const Icon(Icons.add),
       ),
     );
   }
