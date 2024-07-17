@@ -1,5 +1,5 @@
 name: musicify
-description: "A new Flutter project."
+description: "Music Player App."
 publish_to: "none"
 version: 1.0.0+1
 
@@ -7,12 +7,13 @@ environment:
   sdk: ">=3.4.3 <4.0.0"
 
 dependencies:
-  audioplayers: ^6.0.0
-  cupertino_icons: ^1.0.6
-  file_picker: ^8.0.6
   flutter:
     sdk: flutter
-  permission_handler: ^11.3.1
+ 
+  cupertino_icons: ^1.0.2
+  assets_audio_player: ^3.0.5
+  sleek_circular_slider: ^2.0.1
+  palette_generator: ^0.3.3+2
 
 dev_dependencies:
   flutter_lints: ^4.0.0
@@ -21,17 +22,18 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  # - assets/img/
-  fonts:
-    - family: Proxima
-      fonts:
-        - asset: assets/fonts/Proxima-Nova-SBold.ttf
-    #       - asset: fonts/Schyler-Italic.ttf
-    #         style: italic
-    - family: Proxima Bold
-      fonts:
-        - asset: assets/fonts/Proxima-Nova-Bold.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
+
+  assets:
+    - assets/
+  
+  # fonts:
+  #   - family: Circular Std
+  #     fonts:
+  #       - asset: assets/fonts/CircularStd-Book.otf
+  #       - asset: assets/fonts/CircularStd-Medium.otf
+  #         weight: 600
+  #       - asset: assets/fonts/CircularStd-Bold.otf
   #         weight: 700
+  #       - asset: assets/fonts/CircularStd-Black.otf
+  #         weight: 800
+
