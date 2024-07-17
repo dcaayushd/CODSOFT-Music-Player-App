@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:musicify/screens/home_screen.dart';
+import 'package:musicify/screens/main_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,9 +14,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+        scaffoldBackgroundColor: Colors.grey[900],
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.white,
+          secondary: Colors.white,
+        ),
       ),
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+      home: const MainScreen(),
     );
   }
 }
