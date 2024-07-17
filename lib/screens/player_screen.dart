@@ -208,7 +208,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -243,7 +243,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
-                              title: Text("Add to Playlist"),
+                              title: const Text("Add to Playlist"),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -252,14 +252,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                       // Add to existing playlist logic
                                       Navigator.pop(context);
                                     },
-                                    child: Text("Add to Existing Playlist"),
+                                    child: const Text("Add to Existing Playlist"),
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
                                       // Create new playlist logic
                                       Navigator.pop(context);
                                     },
-                                    child: Text("Create New Playlist"),
+                                    child: const Text("Create New Playlist"),
                                   ),
                                 ],
                               ),
