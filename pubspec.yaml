@@ -7,13 +7,15 @@ environment:
   sdk: ">=3.4.3 <4.0.0"
 
 dependencies:
+  assets_audio_player: ^3.0.5
+  cupertino_icons: ^1.0.2
+  file_picker: ^8.0.6
   flutter:
     sdk: flutter
- 
-  cupertino_icons: ^1.0.2
-  assets_audio_player: ^3.0.5
-  sleek_circular_slider: ^2.0.1
+  on_audio_query: ^2.9.0
   palette_generator: ^0.3.3+2
+  permission_handler: ^11.3.1
+  sleek_circular_slider: ^2.0.1
 
 dev_dependencies:
   flutter_lints: ^4.0.0
@@ -25,7 +27,6 @@ flutter:
 
   assets:
     - assets/
-  
   # fonts:
   #   - family: Circular Std
   #     fonts:
@@ -36,4 +37,3 @@ flutter:
   #         weight: 700
   #       - asset: assets/fonts/CircularStd-Black.otf
   #         weight: 800
-

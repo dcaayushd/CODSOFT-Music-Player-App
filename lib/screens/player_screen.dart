@@ -16,6 +16,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
   bool isPlaying = true;
+  bool isFavorite = false;
   @override
   void initState() {
     widget.player.isPlaying.listen((event) {
@@ -163,47 +164,117 @@ class _PlayerScreenState extends State<PlayerScreen> {
             top: MediaQuery.of(context).size.height / 1.3,
             left: 0,
             right: 0,
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                      onPressed: () async {
-                        await widget.player.previous();
-                      },
-                      icon: const Icon(
-                        Icons.skip_previous_rounded,
-                        size: 50,
-                        color: Colors.white,
-                      )),
-                  IconButton(
-                    onPressed: () async {
-                      await widget.player.playOrPause();
-                    },
-                    padding: EdgeInsets.zero,
-                    icon: isPlaying
-                        ? const Icon(
-                            Icons.pause_circle,
-                            size: 70,
+            child: Column(
+              children: [
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                          onPressed: () async {
+                            await widget.player.previous();
+                          },
+                          icon: const Icon(
+                            Icons.skip_previous_rounded,
+                            size: 50,
                             color: Colors.white,
-                          )
-                        : const Icon(
-                            Icons.play_circle,
-                            size: 70,
+                          )),
+                      IconButton(
+                        onPressed: () async {
+                          await widget.player.playOrPause();
+                        },
+                        padding: EdgeInsets.zero,
+                        icon: isPlaying
+                            ? const Icon(
+                                Icons.pause_circle,
+                                size: 70,
+                                color: Colors.white,
+                              )
+                            : const Icon(
+                                Icons.play_circle,
+                                size: 70,
+                                color: Colors.white,
+                              ),
+                      ),
+                      IconButton(
+                          onPressed: () async {
+                            await widget.player.next();
+                          },
+                          icon: const Icon(
+                            Icons.skip_next_rounded,
+                            size: 50,
                             color: Colors.white,
-                          ),
+                          )),
+                    ],
                   ),
-                  IconButton(
-                      onPressed: () async {
-                        await widget.player.next();
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        // Implement shuffle functionality
+                        widget.player.toggleShuffle();
                       },
                       icon: const Icon(
-                        Icons.skip_next_rounded,
-                        size: 50,
+                        Icons.shuffle,
                         color: Colors.white,
-                      )),
-                ],
-              ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        // Implement like/add to favorites functionality
+                        // You might want to use a state management solution to keep track of favorites
+                        // For now, we'll just toggle the icon color
+                        setState(() {
+                          isFavorite = !isFavorite;
+                        });
+                      },
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        // Implement add to playlist functionality
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Add to Playlist"),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Add to existing playlist logic
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text("Add to Existing Playlist"),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Create new playlist logic
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text("Create New Playlist"),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.playlist_add,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
