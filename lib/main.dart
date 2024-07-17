@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'package:musicify/screens/music_player_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MusicifyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MusicifyApp extends StatelessWidget {
+  const MusicifyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Musicify',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF1E2329),
+      title: 'Musicify',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      home: const HomeScreen(),
+      home: const MusicPlayerScreen(),
     );
   }
 }

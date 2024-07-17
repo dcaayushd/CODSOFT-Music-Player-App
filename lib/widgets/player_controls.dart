@@ -1,48 +1,43 @@
 import 'package:flutter/material.dart';
-import '../services/audio_service.dart';
 
-class PlayerControls extends StatefulWidget {
-  final AudioService audioService;
-  final String? currentSongPath;
+class PlayerControls extends StatelessWidget {
+  final bool isPlaying;
+  final VoidCallback onPlayPause;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
 
   const PlayerControls({
     Key? key,
-    required this.audioService,
-    this.currentSongPath,
+    required this.isPlaying,
+    required this.onPlayPause,
+    required this.onNext,
+    required this.onPrevious,
   }) : super(key: key);
 
   @override
-  _PlayerControlsState createState() => _PlayerControlsState();
-}
-
-class _PlayerControlsState extends State<PlayerControls> {
-  @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.skip_previous, size: 36),
-          onPressed: () {},
-        ),
-        const SizedBox(width: 32),
-        IconButton(
-          icon: Icon(
-            widget.audioService.isPlaying ? Icons.pause : Icons.play_arrow,
-            size: 64,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.skip_previous),
+            onPressed: onPrevious,
+            iconSize: 48,
           ),
-          onPressed: () {
-            setState(() {
-              widget.audioService.playPause(widget.currentSongPath);
-            });
-          },
-        ),
-        const SizedBox(width: 32),
-        IconButton(
-          icon: const Icon(Icons.skip_next, size: 36),
-          onPressed: () {},
-        ),
-      ],
+          IconButton(
+            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+            onPressed: onPlayPause,
+            iconSize: 64,
+          ),
+          IconButton(
+            icon: const Icon(Icons.skip_next),
+            onPressed: onNext,
+            iconSize: 48,
+          ),
+        ],
+      ),
     );
   }
 }
