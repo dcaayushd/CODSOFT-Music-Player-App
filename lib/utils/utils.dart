@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -33,9 +35,25 @@ String durationFormat(Duration duration) {
 }
 
 // get song cover image colors
+// Future<PaletteGenerator> getImageColors(AssetsAudioPlayer player) async {
+//   var paletteGenerator = await PaletteGenerator.fromImageProvider(
+//     AssetImage(player.getCurrentAudioImage?.path ?? ''),
+//   );
+//   return paletteGenerator;
+// }
+
+
 Future<PaletteGenerator> getImageColors(AssetsAudioPlayer player) async {
-  var paletteGenerator = await PaletteGenerator.fromImageProvider(
-    AssetImage(player.getCurrentAudioImage?.path ?? ''),
-  );
-  return paletteGenerator;
+  final metas = await player.current.first;
+  final image = metas?.audio.audio.metas.image;
+
+  if (image == null) {
+    return PaletteGenerator.fromColors([PaletteColor(Colors.grey, 1)]);
+  }
+
+  if (image.path.startsWith('assets')) {
+    return PaletteGenerator.fromImageProvider(AssetImage(image.path));
+  } else {
+    return PaletteGenerator.fromImageProvider(FileImage(image.path as File));
+  }
 }
