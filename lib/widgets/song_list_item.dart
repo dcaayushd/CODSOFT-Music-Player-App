@@ -29,19 +29,19 @@ class SongListItem extends StatelessWidget {
         type: ArtworkType.AUDIO,
         nullArtworkWidget: const Icon(Icons.music_note, color: Colors.white),
       ),
-      // onTap: () async {
-      //   await player.open(
-      //     Audio.file(song.data,
-      //         metas: Metas(
-      //           title: song.title,
-      //           artist: song.artist,
-      //           album: song.album,
-      //         )),
-      //     autoStart: true,
-      //     showNotification: true,
-      //   );
-      // },
-      onTap: onTap,
+      onTap: () async {
+        await player.open(
+          Audio.file(song.data,
+              metas: Metas(
+                title: song.title,
+                artist: song.artist,
+                album: song.album,
+              )),
+          autoStart: true,
+          showNotification: true,
+        );
+      },
+      // onTap: onTap,
     );
   }
 }
