@@ -27,21 +27,30 @@ class SongListItem extends StatelessWidget {
       leading: QueryArtworkWidget(
         id: song.id,
         type: ArtworkType.AUDIO,
-        nullArtworkWidget: const Icon(Icons.music_note, color: Colors.white),
+        // nullArtworkWidget: const Icon(Icons.music_note, color: Colors.white),
+        nullArtworkWidget: Container(
+          width: 50,
+          height: 50,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.grey,
+          ),
+          child: const Icon(Icons.music_note, color: Colors.white),
+        ),
       ),
-      onTap: () async {
-        await player.open(
-          Audio.file(song.data,
-              metas: Metas(
-                title: song.title,
-                artist: song.artist,
-                album: song.album,
-              )),
-          autoStart: true,
-          showNotification: true,
-        );
-      },
-      // onTap: onTap,
+      // onTap: () async {
+      //   await player.open(
+      //     Audio.file(song.data,
+      //         metas: Metas(
+      //           title: song.title,
+      //           artist: song.artist,
+      //           album: song.album,
+      //         )),
+      //     autoStart: true,
+      //     showNotification: true,
+      //   );
+      // },
+      onTap: onTap,
     );
   }
 }
