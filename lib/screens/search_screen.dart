@@ -6,12 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchScreen extends StatefulWidget {
   final AssetsAudioPlayer player;
-  final Function(SongModel) onSongSelected;
+
 
   const SearchScreen({
     super.key,
     required this.player,
-    required this.onSongSelected,
   });
 
   @override
@@ -25,7 +24,6 @@ class SearchScreenState extends State<SearchScreen> {
   List<SongModel> _filteredSongs = [];
   List<AlbumModel> _filteredAlbums = [];
   List<String> _recentSearches = [];
-  List<SongModel> _suggestions = [];
   TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
@@ -34,7 +32,6 @@ class SearchScreenState extends State<SearchScreen> {
     super.initState();
     _fetchSongsAndAlbums();
     _loadRecentSearches();
-    _loadSuggestions();
   }
 
   void _fetchSongsAndAlbums() async {
@@ -73,10 +70,6 @@ class SearchScreenState extends State<SearchScreen> {
     await prefs.remove('recent_searches');
   }
 
-  void _loadSuggestions() {
-    _suggestions = _songs.take(5).toList();
-  }
-
   void _filterSongsAndAlbums(String query) {
     setState(() {
       _filteredSongs = _songs
@@ -91,7 +84,12 @@ class SearchScreenState extends State<SearchScreen> {
           .toList();
       _isSearching = query.isNotEmpty;
     });
+  }
+
+  void _performSearch() {
+    final query = _searchController.text;
     if (query.isNotEmpty) {
+      _filterSongsAndAlbums(query);
       _saveRecentSearch(query);
     }
   }
@@ -111,8 +109,11 @@ class SearchScreenState extends State<SearchScreen> {
               borderSide: BorderSide.none,
             ),
             filled: true,
-            fillColor: Colors.grey[200],
-            prefixIcon: const Icon(Icons.search),
+            fillColor: Colors.grey[700],
+            prefixIcon: IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: _performSearch,
+            ),
             suffixIcon: _isSearching
                 ? IconButton(
                     icon: const Icon(Icons.clear),
@@ -123,7 +124,7 @@ class SearchScreenState extends State<SearchScreen> {
                   )
                 : null,
           ),
-          style: const TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.white),
         ),
       ),
       body: _isSearching ? _buildSearchResults() : _buildInitialContent(),
@@ -145,7 +146,7 @@ class SearchScreenState extends State<SearchScreen> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 TextButton(
                   onPressed: _clearRecentSearches,
-                  child: const Text('Clear'),
+                  child: const Text('Clear All'),
                 ),
               ],
             ),
@@ -154,52 +155,19 @@ class SearchScreenState extends State<SearchScreen> {
             children: _recentSearches
                 .map((search) => Padding(
                       padding: const EdgeInsets.all(4.0),
-                      child: Chip(
-                        label: Text(search),
-                        onDeleted: () {
-                          setState(() {
-                            _recentSearches.remove(search);
-                          });
+                      child: InkWell(
+                        onTap: () {
+                          _searchController.text = search;
+                          _performSearch();
                         },
+                        child: Chip(
+                          label: Text(search),
+                        ),
                       ),
                     ))
                 .toList(),
           ),
         ],
-        const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text('Suggestions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: _suggestions.length,
-            itemBuilder: (context, index) {
-              return SongListItem(
-                song: _suggestions[index],
-                player: widget.player,
-                // onTap: () {
-                //   widget.onSongSelected(_suggestions[index]);
-                // },
-                onTap: () async {
-                  await widget.player.open(
-                    Audio.file(
-                      _filteredSongs[index].data,
-                      metas: Metas(
-                        id: _filteredSongs[index].id.toString(),
-                        title: _filteredSongs[index].title,
-                        artist: _filteredSongs[index].artist,
-                        album: _filteredSongs[index].album,
-                      ),
-                    ),
-                    showNotification: true,
-                  );
-                  widget.onSongSelected(_filteredSongs[index]);
-                },
-              );
-            },
-          ),
-        ),
       ],
     );
   }
@@ -224,9 +192,6 @@ class SearchScreenState extends State<SearchScreen> {
                     return SongListItem(
                       song: _filteredSongs[index],
                       player: widget.player,
-                      // onTap: () {
-                      //   widget.onSongSelected(_filteredSongs[index]);
-                      // },
                       onTap: () async {
                         await widget.player.open(
                           Audio.file(
@@ -240,8 +205,12 @@ class SearchScreenState extends State<SearchScreen> {
                           ),
                           showNotification: true,
                         );
-                        widget.onSongSelected(_filteredSongs[index]);
-                      },
+                        // widget.onSongSelected(_filteredSongs[index]);
+                        _saveRecentSearch(_searchController.text);
+                        Navigator.pop(context);
+                      }, 
+
+
                     );
                   },
                 ),
