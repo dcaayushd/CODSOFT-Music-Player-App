@@ -9,12 +9,12 @@ class SongListItem extends StatelessWidget {
   final bool isSelected;
 
   const SongListItem({
-    Key? key,
+    super.key,
     required this.song,
     required this.player,
     required this.onTap,
     this.isSelected = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
