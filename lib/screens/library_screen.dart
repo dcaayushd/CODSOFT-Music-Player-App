@@ -1,7 +1,11 @@
+import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:musicify/screens/playlist_screen.dart';
 
 class LibraryScreen extends StatelessWidget {
-  const LibraryScreen({super.key});
+  final AssetsAudioPlayer player;
+  const LibraryScreen({super.key, required this.player});
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +35,18 @@ class LibraryScreen extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(
-              Icons.add,
+              Icons.playlist_play,
               color: Colors.white,
             ),
             title: const Text(
-              'Create New Playlist',
+              'Playlists',
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              // Show dialog to create a new playlist
+              Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (context) => PlaylistScreen(player:player,)),
+              );
             },
           ),
           // Add more ListTiles for existing playlists
