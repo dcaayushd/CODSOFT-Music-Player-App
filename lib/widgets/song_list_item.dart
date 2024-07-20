@@ -6,51 +6,56 @@ class SongListItem extends StatelessWidget {
   final SongModel song;
   final AssetsAudioPlayer player;
   final VoidCallback onTap;
+  final bool isSelected;
+
   const SongListItem({
-    super.key,
+    Key? key,
     required this.song,
     required this.player,
     required this.onTap,
-  });
+    this.isSelected = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(
-        song.title,
-        style: const TextStyle(color: Colors.white),
+        song.title ?? 'Unknown Title',
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: isSelected ? Colors.blue : Colors.white,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
       ),
       subtitle: Text(
         song.artist ?? 'Unknown Artist',
-        style: const TextStyle(color: Colors.white70),
-      ),
-      leading: QueryArtworkWidget(
-        id: song.id,
-        type: ArtworkType.AUDIO,
-        // nullArtworkWidget: const Icon(Icons.music_note, color: Colors.white),
-        nullArtworkWidget: Container(
-          width: 50,
-          height: 50,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey,
-          ),
-          child: const Icon(Icons.music_note, color: Colors.white),
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: isSelected ? Colors.blue.withOpacity(0.7) : Colors.white70,
         ),
       ),
-      // onTap: () async {
-      //   await player.open(
-      //     Audio.file(song.data,
-      //         metas: Metas(
-      //           title: song.title,
-      //           artist: song.artist,
-      //           album: song.album,
-      //         )),
-      //     autoStart: true,
-      //     showNotification: true,
-      //   );
-      // },
+      leading: song.id != null
+          ? QueryArtworkWidget(
+              id: song.id!,
+              type: ArtworkType.AUDIO,
+              nullArtworkWidget: _defaultArtwork(),
+            )
+          : _defaultArtwork(),
       onTap: onTap,
+      trailing:
+          isSelected ? const Icon(Icons.equalizer, color: Colors.blue) : null,
+    );
+  }
+
+  Widget _defaultArtwork() {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.grey,
+      ),
+      child: const Icon(Icons.music_note, color: Colors.white),
     );
   }
 }
