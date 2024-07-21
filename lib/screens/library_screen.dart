@@ -1,6 +1,7 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:musicify/screens/favorites_screen.dart';
 import 'package:musicify/screens/playlist_screen.dart';
 
 class LibraryScreen extends StatelessWidget {
@@ -30,7 +31,10 @@ class LibraryScreen extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              // Navigate to Favorites Songs
+              Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (context) => const FavoritesScreen()),
+              );
             },
           ),
           ListTile(
@@ -49,7 +53,6 @@ class LibraryScreen extends StatelessWidget {
               );
             },
           ),
-          // Add more ListTiles for existing playlists
         ],
       ),
     );
