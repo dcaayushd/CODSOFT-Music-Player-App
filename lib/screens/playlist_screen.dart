@@ -95,7 +95,7 @@ class PlaylistScreenState extends State<PlaylistScreen> {
                     MaterialPageRoute(
                       builder: (context) => PlaylistSongsScreen(
                         playlist: playlist,
-                        player: widget.player,
+                        // player: widget.player,
                         onPlaylistUpdated: _loadPlaylists,
                       ),
                     ),
@@ -113,7 +113,7 @@ class PlaylistScreenState extends State<PlaylistScreen> {
 class CreatePlaylistScreen extends StatelessWidget {
   final Function(String) onPlaylistCreated;
 
-  CreatePlaylistScreen({Key? key, required this.onPlaylistCreated}) : super(key: key);
+  CreatePlaylistScreen({super.key, required this.onPlaylistCreated});
 
   final TextEditingController _controller = TextEditingController();
 
