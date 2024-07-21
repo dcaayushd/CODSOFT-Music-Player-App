@@ -9,11 +9,11 @@ class AlbumGridItem extends StatelessWidget {
   final AssetsAudioPlayer player;
 
   const AlbumGridItem({
-    Key? key,
+    super.key,
     required this.album,
     required this.songs,
     required this.player,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
