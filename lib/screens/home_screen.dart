@@ -1,23 +1,27 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:on_audio_query/on_audio_query.dart';
-import 'package:palette_generator/palette_generator.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:musicify/screens/search_screen.dart';
-import 'package:musicify/screens/player_screen.dart';
-import 'package:musicify/widgets/song_list_item.dart';
-import 'package:musicify/widgets/artist_list_item.dart';
-import 'package:musicify/widgets/album_grid_item.dart';
-import 'package:musicify/utils/utils.dart';
+import 'dart:ui';
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:on_audio_query/on_audio_query.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:palette_generator/palette_generator.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'package:musicify/screens/player_screen.dart';
+import 'package:musicify/screens/search_screen.dart';
+
+import 'package:musicify/services/audio_service.dart';
+import 'package:musicify/utils/audio_state.dart';
+import 'package:musicify/utils/utils.dart';
+
+import 'package:musicify/widgets/album_grid_item.dart';
+import 'package:musicify/widgets/artist_list_item.dart';
+import 'package:musicify/widgets/song_list_item.dart';
+
 class HomeScreen extends StatefulWidget {
-  final AssetsAudioPlayer player;
-  final Function(SongModel) onSongSelected;
-  const HomeScreen(
-      {super.key, required this.player, required this.onSongSelected});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -25,8 +29,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
+  final AudioService _audioService = AudioService();
   bool isPlaying = false;
-  final OnAudioQuery _audioQuery = OnAudioQuery();
+  // final OnAudioQuery _audioQuery = OnAudioQuery();
   List<SongModel> _songs = [];
   List<ArtistModel> _artists = [];
   List<AlbumModel> _albums = [];
@@ -34,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen>
   Color labelColor = Colors.white;
   Color unselectedLabelColor = Colors.grey;
   Color indicatorColor = Colors.white;
+  int? currentSongIndex;
 
   late final AnimationController _animationController =
       AnimationController(vsync: this, duration: const Duration(seconds: 3));
@@ -41,73 +47,92 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _requestPermission();
-    _openPlayer();
+    _initialize();
+    _audioService.player.currentPosition.listen((position) {
+      // Handle position changes if needed
+    });
 
-    widget.player.isPlaying.listen((event) {
-      if (mounted) {
-        setState(() {
-          isPlaying = event;
-        });
+    _audioService.player.playlistAudioFinished.listen((_) {
+      _updateCurrentSongInfo();
+    });
+
+    _audioService.player.current.listen((playingAudio) {
+      if (playingAudio != null) {
+        _updateCurrentSongInfo();
       }
     });
 
-    widget.player.current.listen((playingAudio) {
-      // if (playingAudio != null && playingAudio.audio.audio.path != null) {
-      if (playingAudio != null) {
-        _updateDisplayedSong(SongModel({
-          'id': playingAudio.audio.audio.metas.id,
-          'title': playingAudio.audio.audio.metas.title ?? 'Unknown Title',
-          'artist': playingAudio.audio.audio.metas.artist ?? 'Unknown Artist',
-          'album': playingAudio.audio.audio.metas.album ?? 'Unknown Album',
-          'data': playingAudio.audio.audio.path,
-        }));
-        _updateColors();
-      }
+    AudioState().audioStateStream.listen((_) {
+      _updateCurrentSongInfo();
     });
   }
 
-  void _requestPermission() async {
-    if (await Permission.storage.request().isGranted) {
-      _fetchSongs();
-    } else {
-      _openPlayer();
+  void _updateCurrentSongInfo() {
+    final currentAudio = _audioService.player.current.value?.audio;
+    if (currentAudio != null) {
+      final songId = int.tryParse(currentAudio.audio.metas.id ?? '0');
+      if (songId != null) {
+        final song = _songs.firstWhere(
+          (song) => song.id == songId,
+          orElse: () => SongModel({
+            'id': 0,
+            'title': 'Unknown Title',
+            'artist': 'Unknown Artist',
+            'album': 'Unknown Album',
+            'data': '',
+          }),
+        );
+
+        setState(() {
+          displayedSong = song;
+          _updateColors();
+          _updateCurrentSongIndex();
+        });
+      }
     }
   }
 
-  void _fetchSongs() async {
-    _songs = await _audioQuery.querySongs(
-      ignoreCase: true,
-      orderType: OrderType.ASC_OR_SMALLER,
-      sortType: null,
-      uriType: UriType.EXTERNAL,
-    );
-    _artists = await _audioQuery.queryArtists();
-    _albums = await _audioQuery.queryAlbums();
-    setState(() {});
-    _openPlayer();
+  Future<void> _initialize() async {
+    try {
+      if (await _audioService.requestPermission()) {
+        await _fetchSongs();
+      } else {
+        _showPermissionDeniedDialog();
+      }
+
+      _audioService.player.isPlaying.listen((event) {
+        if (mounted) {
+          setState(() {
+            isPlaying = event;
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('Error during initialization: $e');
+      _showErrorDialog('Initialization Error', e.toString());
+    }
+  }
+
+  Future<void> _fetchSongs() async {
+    try {
+      _songs = await _audioService.fetchSongs();
+      _artists = await _audioService.fetchArtists();
+      _albums = await _audioService.fetchAlbums();
+
+      setState(() {});
+      if (_songs.isNotEmpty) {
+        _openPlayer();
+      } else {
+        _showImportDialog();
+      }
+    } catch (e) {
+      debugPrint('Error fetching songs, artists, or albums: $e');
+      _showErrorDialog('Fetch Error', e.toString());
+    }
   }
 
   void _openPlayer() async {
-    if (_songs.isNotEmpty) {
-      final playlist = Playlist(
-        audios: _songs
-            .map((song) => Audio.file(song.data,
-                metas: Metas(
-                  title: song.title,
-                  artist: song.artist,
-                  album: song.album,
-                  image: MetasImage.file(song.data),
-                )))
-            .toList(),
-      );
-      await widget.player.open(playlist,
-          autoStart: false,
-          showNotification: true,
-          loopMode: LoopMode.playlist);
-    } else {
-      _showImportDialog();
-    }
+    await _audioService.openPlayer(_songs);
   }
 
   void _showImportDialog() {
@@ -177,31 +202,65 @@ class _HomeScreenState extends State<HomeScreen>
       setState(() {
         displayedSong = song;
       });
-      widget.onSongSelected(song);
-      widget.player.open(
-        Audio.file(
-          song.data,
-          metas: Metas(
-            id: song.id.toString(),
-            title: song.title,
-            artist: song.artist,
-            album: song.album,
-            image: MetasImage.file(song.data),
-          ),
-        ),
-        showNotification: true,
-      );
     }
   }
 
   void _updateColors() async {
-    final colors = await getImageColors(widget.player);
+    final colors = await getImageColors(_audioService.player);
     setState(() {
       labelColor = colors.lightMutedColor?.color ?? Colors.white;
       indicatorColor = colors.lightMutedColor?.color ?? Colors.white;
     });
   }
 
+  void _updateCurrentSongIndex() {
+    if (displayedSong != null) {
+      setState(() {
+        currentSongIndex =
+            _songs.indexWhere((song) => song.id == displayedSong!.id);
+      });
+    }
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Permission Denied'),
+        content: const Text(
+            'Audio permission was denied. The app cannot access your audio files.'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Open Settings'),
+            onPressed: () {
+              openAppSettings();
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -223,8 +282,7 @@ class _HomeScreenState extends State<HomeScreen>
                     CupertinoPageRoute(
                         fullscreenDialog: true,
                         builder: (context) => SearchScreen(
-                              player: widget.player,
-                              onSongSelected: widget.onSongSelected,
+                              player: _audioService.player,
                             )));
               },
             ),
@@ -250,18 +308,21 @@ class _HomeScreenState extends State<HomeScreen>
             dividerColor: Colors.transparent,
           ),
         ),
-        body: Column(
+        body: Stack(
           children: [
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildSongsList(),
-                  _buildArtistsList(),
-                  _buildAlbumsList(),
-                ],
-              ),
+            TabBarView(
+              children: [
+                _buildSongsList(),
+                _buildArtistsList(),
+                _buildAlbumsList(),
+              ],
             ),
-            _buildMiniPlayer(),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildMiniPlayer(),
+            ),
           ],
         ),
       ),
@@ -272,101 +333,119 @@ class _HomeScreenState extends State<HomeScreen>
     return displayedSong == null
         ? const SizedBox.shrink()
         : FutureBuilder<PaletteGenerator>(
-            future: getImageColors(widget.player),
+            future: getImageColors(_audioService.player),
             builder: (context, snapshot) {
               return Container(
                 margin:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                 height: 75,
                 decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: const Alignment(0, 5),
-                        colors: [
-                          snapshot.data?.lightMutedColor?.color ?? Colors.grey,
-                          snapshot.data?.mutedColor?.color ?? Colors.grey,
-                        ]),
-                    borderRadius: BorderRadius.circular(20)),
-                child: ListTile(
-                  leading: AnimatedBuilder(
-                    animation: _animationController,
-                    builder: (_, child) {
-                      if (!isPlaying) {
-                        _animationController.stop();
-                      } else {
-                        _animationController.forward();
-                        _animationController.repeat();
-                      }
-                      return Transform.rotate(
-                          angle: _animationController.value * 2 * math.pi,
-                          child: child);
-                    },
-                    child: ClipOval(
-                      child: SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: QueryArtworkWidget(
-                          id: displayedSong?.id ?? 0,
-                          type: ArtworkType.AUDIO,
-                          artworkBorder: BorderRadius.circular(30),
-                          nullArtworkWidget: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.grey,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: const Alignment(0, 5),
+                    colors: [
+                      (snapshot.data?.lightMutedColor?.color ?? Colors.grey)
+                          .withOpacity(0.8),
+                      (snapshot.data?.mutedColor?.color ?? Colors.grey)
+                          .withOpacity(0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      color: Colors.black.withOpacity(0.1),
+                      child: ListTile(
+                        leading: AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (_, child) {
+                            if (!isPlaying) {
+                              _animationController.stop();
+                            } else {
+                              _animationController.forward();
+                              _animationController.repeat();
+                            }
+                            return Transform.rotate(
+                              angle: _animationController.value * 2 * math.pi,
+                              child: child,
+                            );
+                          },
+                          child: ClipOval(
+                            child: SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: QueryArtworkWidget(
+                                id: displayedSong!.id,
+                                type: ArtworkType.AUDIO,
+                                artworkBorder: BorderRadius.circular(30),
+                                nullArtworkWidget: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey,
+                                  ),
+                                  child: const Icon(Icons.music_note,
+                                      color: Colors.white),
+                                ),
+                              ),
                             ),
-                            child: const Icon(Icons.music_note,
-                                color: Colors.white),
                           ),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              fullscreenDialog: true,
+                              builder: (context) => PlayerScreen(
+                                player: _audioService.player,
+                              ),
+                            ),
+                          );
+                        },
+                        title: Text(
+                          displayedSong!.title,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          displayedSong!.artist ?? 'Unknown Artist',
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              TextStyle(color: Colors.white.withOpacity(0.7)),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () async {
+                                await _audioService.player.playOrPause();
+                              },
+                              icon: Icon(
+                                isPlaying
+                                    ? CupertinoIcons.pause
+                                    : CupertinoIcons.play_arrow,
+                                color: Colors.white,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () async {
+                                await _audioService.player.next();
+                                _updateCurrentSong();
+                              },
+                              icon: const Icon(
+                                CupertinoIcons.forward_end,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                  onTap: () {
-                    if (displayedSong != null) {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          fullscreenDialog: true,
-                          builder: (context) => PlayerScreen(
-                            player: widget.player,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  title: Text(
-                    displayedSong?.title ?? 'No song',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    displayedSong?.artist ?? 'Unknown Artist',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () async {
-                          if (displayedSong != null) {
-                            await widget.player.playOrPause();
-                          }
-                        },
-                        icon: isPlaying
-                            ? const Icon(CupertinoIcons.pause)
-                            : const Icon(CupertinoIcons.play_arrow),
-                      ),
-                      IconButton(
-                        onPressed: () async {
-                          await widget.player.next();
-                        },
-                        icon: const Icon(
-                          CupertinoIcons.forward_end,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               );
@@ -374,7 +453,34 @@ class _HomeScreenState extends State<HomeScreen>
           );
   }
 
+  void _updateCurrentSong() async {
+    final currentAudio = _audioService.player.current.value?.audio;
+    if (currentAudio != null) {
+      final songId = int.tryParse(currentAudio.audio.metas.id ?? '0');
+      if (songId != null) {
+        final song = _songs.firstWhere(
+          (song) => song.id == songId,
+          orElse: () => SongModel({
+            'id': 0,
+            'title': 'Unknown Title',
+            'artist': 'Unknown Artist',
+            'album': 'Unknown Album',
+            'data': '',
+          }),
+        );
+
+        setState(() {
+          displayedSong = song;
+          _updateColors();
+        });
+      }
+    }
+  }
+
   Widget _buildSongsList() {
+    if (_songs.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return ListView.separated(
       separatorBuilder: (context, index) {
         return const Divider(
@@ -388,10 +494,15 @@ class _HomeScreenState extends State<HomeScreen>
       itemBuilder: (context, index) {
         return SongListItem(
           song: _songs[index],
-          player: widget.player,
-          onTap: () {
-            _updateDisplayedSong(_songs[index]);
+          onTap: () async {
+            await _audioService.player.playlistPlayAtIndex(index);
+            setState(() {
+              displayedSong = _songs[index];
+              currentSongIndex = index;
+            });
           },
+          player: _audioService.player,
+          isSelected: index == currentSongIndex,
         );
       },
     );
@@ -406,7 +517,7 @@ class _HomeScreenState extends State<HomeScreen>
           songs: _songs
               .where((song) => song.artist == _artists[index].artist)
               .toList(),
-          player: widget.player,
+          player: _audioService.player,
         );
       },
     );
@@ -422,10 +533,10 @@ class _HomeScreenState extends State<HomeScreen>
       itemBuilder: (context, index) {
         return AlbumGridItem(
           album: _albums[index],
+          player: _audioService.player,
           songs: _songs
               .where((song) => song.album == _albums[index].album)
               .toList(),
-          player: widget.player,
         );
       },
     );
