@@ -4,7 +4,6 @@ import 'package:musicify/screens/playlist_song_screen.dart';
 
 import '../services/playlist_service.dart';
 
-
 class PlaylistScreen extends StatefulWidget {
   final AssetsAudioPlayer player;
   const PlaylistScreen({super.key, required this.player});
@@ -121,6 +120,7 @@ class CreatePlaylistScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text('Create New Playlist'),
       ),
       body: Padding(
