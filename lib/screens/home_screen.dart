@@ -1,10 +1,10 @@
-import 'dart:ui';
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'dart:ui';
+import 'dart:math' as math;
+
 import 'package:file_picker/file_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -84,8 +84,8 @@ class _HomeScreenState extends State<HomeScreen>
 
         setState(() {
           displayedSong = song;
+          currentSongIndex = _songs.indexWhere((s) => s.id == song.id);
           _updateColors();
-          _updateCurrentSongIndex();
         });
       }
     }
@@ -196,29 +196,12 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  void _updateDisplayedSong(SongModel song) {
-    if (song.data != null) {
-      setState(() {
-        displayedSong = song;
-      });
-    }
-  }
-
   void _updateColors() async {
     final colors = await getImageColors(_audioService.player);
     setState(() {
       labelColor = colors.lightMutedColor?.color ?? Colors.white;
       indicatorColor = colors.lightMutedColor?.color ?? Colors.white;
     });
-  }
-
-  void _updateCurrentSongIndex() {
-    if (displayedSong != null) {
-      setState(() {
-        currentSongIndex =
-            _songs.indexWhere((song) => song.id == displayedSong!.id);
-      });
-    }
   }
 
   void _showPermissionDeniedDialog() {
@@ -261,16 +244,54 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  void _handleSwipe(DragEndDetails details) {
+    if (details.primaryVelocity! > 0) {
+      _playPreviousSong();
+    } else if (details.primaryVelocity! < 0) {
+      _playNextSong();
+    }
+  }
+
+  void _playPreviousSong() {
+    _audioService.player.currentPosition.first.then((position) {
+      if (position > const Duration(seconds: 3)) {
+        _audioService.player.seek(Duration.zero);
+      } else {
+        _audioService.player.previous();
+      }
+      _updateCurrentSong();
+    });
+  }
+
+  void _playNextSong() {
+    _audioService.player.next().then((_) {
+      _updateCurrentSongInfo();
+    });
+  }
+
+  void _updateCurrentSong() async {
+    final currentAudio = _audioService.player.current.value?.audio;
+    if (currentAudio != null) {
+      final songId = int.tryParse(currentAudio.audio.metas.id ?? '0');
+      if (songId != null) {
+        final songIndex = _songs.indexWhere((song) => song.id == songId);
+        if (songIndex != -1 && songIndex != currentSongIndex) {
+          setState(() {
+            displayedSong = _songs[songIndex];
+            currentSongIndex = songIndex;
+          });
+          _updateColors();
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Playing?>(
         stream: _audioService.player.current,
         builder: (context, snapshot) {
-          //!remove this
-          // if (snapshot.hasData && snapshot.data != null) {
-          //   _updateCurrentSong();
-          // }
-          return DefaultTabController(
+                 return DefaultTabController(
             length: 3,
             child: Scaffold(
               appBar: AppBar(
@@ -283,17 +304,27 @@ class _HomeScreenState extends State<HomeScreen>
                 backgroundColor: Colors.transparent,
                 actions: [
                   IconButton(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          fullscreenDialog: true,
+                          builder: (context) => SearchScreen(
+                            player: _audioService.player,
+                          ),
+                        ),
+                      );
+                      if (result != null && result is SongModel) {
+                        setState(() {
+                          displayedSong = result;
+                          currentSongIndex =
+                              _songs.indexWhere((song) => song.id == result.id);
+                        });
+                        _updateColors();
+                      }
+                    },
                     icon:
                         const Icon(CupertinoIcons.search, color: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                              fullscreenDialog: true,
-                              builder: (context) => SearchScreen(
-                                    player: _audioService.player,
-                                  )));
-                    },
                   ),
                 ],
                 bottom: TabBar(
@@ -466,103 +497,6 @@ class _HomeScreenState extends State<HomeScreen>
           );
   }
 
-  void _handleSwipe(DragEndDetails details) {
-    if (details.primaryVelocity! > 0) {
-      _playPreviousSong();
-    } else if (details.primaryVelocity! < 0) {
-      _playNextSong();
-    }
-  }
-
-  void _playPreviousSong() {
-    _audioService.player.currentPosition.first.then((position) {
-      if (position > const Duration(seconds: 3)) {
-        _audioService.player.seek(Duration.zero);
-      } else {
-        _audioService.player.previous();
-      }
-      _updateCurrentSong();
-    });
-  }
-
-  // void _playNextSong() {
-  //   if (isPlaying) {
-  //     _audioService.player.pause().then((_) {
-  //       _audioService.player.next().then((_) {
-  //         if (isPlaying) {
-  //           _audioService.player.play();
-  //         }
-  //         _updateCurrentSong();
-  //       });
-  //     });
-  //   } else {
-  //     _audioService.player.next().then((_) {
-  //       _updateCurrentSong();
-  //     });
-  //   }
-  // }
-
-  void _playNextSong() {
-    if (currentSongIndex != null && currentSongIndex! < _songs.length - 1) {
-      currentSongIndex = currentSongIndex! + 1;
-      _audioService.player.open(
-        Audio.file(
-          _songs[currentSongIndex!].data,
-          metas: Metas(
-            id: _songs[currentSongIndex!].id.toString(),
-            title: _songs[currentSongIndex!].title,
-            artist: _songs[currentSongIndex!].artist,
-            album: _songs[currentSongIndex!].album,
-          ),
-        ),
-        showNotification: true,
-      );
-      _updateCurrentSong();
-    }
-  }
-
-  // void _updateCurrentSong() async {
-  //   final currentAudio = _audioService.player.current.value?.audio;
-  //   if (currentAudio != null) {
-  //     final songId = int.tryParse(currentAudio.audio.metas.id ?? '0');
-  //     if (songId != null) {
-  //       final song = _songs.firstWhere(
-  //         (song) => song.id == songId,
-  //         orElse: () => SongModel({
-  //           'id': 0,
-  //           'title': 'Unknown Title',
-  //           'artist': 'Unknown Artist',
-  //           'album': 'Unknown Album',
-  //           'data': '',
-  //         }),
-  //       );
-
-  //       setState(() {
-  //         displayedSong = song;
-  //         _updateColors();
-  //       });
-  //     }
-  //   }
-  // }
-
-  void _updateCurrentSong() async {
-    final currentAudio = _audioService.player.current.value?.audio;
-    if (currentAudio != null) {
-      final songId = int.tryParse(currentAudio.audio.metas.id ?? '0');
-      if (songId != null) {
-        final songIndex = _songs.indexWhere((song) => song.id == songId);
-        // if (songIndex != -1) {
-         if (songIndex != -1 && songIndex != currentSongIndex) {
-          setState(() {
-            displayedSong = _songs[songIndex];
-            currentSongIndex = songIndex;
-            _updateColors();
-          });
-        }
-      }
-    }
-  }
-
   Widget _buildSongsList() {
     if (_songs.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -581,11 +515,28 @@ class _HomeScreenState extends State<HomeScreen>
         return SongListItem(
           song: _songs[index],
           onTap: () async {
-            await _audioService.player.playlistPlayAtIndex(index);
+            await _audioService.player.stop();
+            List<Audio> playlist = _songs
+                .sublist(index)
+                .map((song) => Audio.file(
+                      song.data,
+                      metas: Metas(
+                        id: song.id.toString(),
+                        title: song.title,
+                        artist: song.artist,
+                        album: song.album,
+                      ),
+                    ))
+                .toList();
+            await _audioService.player.open(
+              Playlist(audios: playlist),
+              showNotification: true,
+            );
             setState(() {
               displayedSong = _songs[index];
               currentSongIndex = index;
             });
+            _updateColors();
           },
           player: _audioService.player,
           isSelected: index == currentSongIndex,
