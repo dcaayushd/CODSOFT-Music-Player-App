@@ -8,7 +8,7 @@ class AudioService {
   AudioService._internal();
 
   final OnAudioQuery _audioQuery = OnAudioQuery();
-  final AssetsAudioPlayer player = AssetsAudioPlayer();
+  final AssetsAudioPlayer player = AssetsAudioPlayer.newPlayer();
 
   Future<bool> requestPermission() async {
     if (await Permission.audio.request().isGranted) {
@@ -42,18 +42,20 @@ class AudioService {
   }
 
   Future<void> openPlayer(List<SongModel> songs) async {
-  if (songs.isNotEmpty) {
+    if (songs.isNotEmpty) {
       final playlist = Playlist(
-        audios: songs.map((song) => Audio.file(
-          song.data!,
-          metas: Metas(
-            id: song.id.toString(),
-            title: song.title,
-            artist: song.artist,
-            album: song.album,
-            image: MetasImage.file(song.data!),
-          ),
-        )).toList(),
+        audios: songs
+            .map((song) => Audio.file(
+                  song.data!,
+                  metas: Metas(
+                    id: song.id.toString(),
+                    title: song.title,
+                    artist: song.artist,
+                    album: song.album,
+                    image: MetasImage.file(song.data!),
+                  ),
+                ))
+            .toList(),
       );
       await player.open(
         playlist,
@@ -63,7 +65,7 @@ class AudioService {
       );
     }
   }
-  
+
   void shufflePlaylist() {
     final currentPlaylist = player.playlist?.audios;
     if (currentPlaylist != null && currentPlaylist.isNotEmpty) {
@@ -74,5 +76,48 @@ class AudioService {
         autoStart: true,
       );
     }
+  }
+
+  Future<void> playSong(SongModel song) async {
+    await player.stop();
+    await player.open(
+      Audio.file(
+        song.data!,
+        metas: Metas(
+          id: song.id.toString(),
+          title: song.title,
+          artist: song.artist,
+          album: song.album,
+          image: MetasImage.file(song.data!),
+        ),
+      ),
+      showNotification: true,
+    );
+    player.play();
+  }
+
+  Future<void> playPlaylist(List<SongModel> songs, int initialIndex) async {
+    await player.stop();
+    final playlist = Playlist(
+      audios: songs
+          .map((song) => Audio.file(
+                song.data!,
+                metas: Metas(
+                  id: song.id.toString(),
+                  title: song.title,
+                  artist: song.artist,
+                  album: song.album,
+                  image: MetasImage.file(song.data!),
+                ),
+              ))
+          .toList(),
+    );
+    await player.open(
+      playlist,
+      autoStart: true,
+      showNotification: true,
+      loopMode: LoopMode.playlist,
+    );
+    player.playlistPlayAtIndex(initialIndex);
   }
 }
