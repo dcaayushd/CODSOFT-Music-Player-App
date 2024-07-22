@@ -8,7 +8,6 @@ import 'package:musicify/utils/utils.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
-
   @override
   MainScreenState createState() => MainScreenState();
 }
@@ -17,7 +16,6 @@ class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final player = AssetsAudioPlayer();
   Color selectedNavColor = Colors.white;
-
   @override
   void initState() {
     super.initState();
@@ -25,7 +23,6 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _updateNavColor() async {
-    // final colors = await SharedLogic.getImageColors(player);
     final colors = await getImageColors(player);
     setState(() {
       selectedNavColor = colors.lightMutedColor?.color ?? Colors.white;
@@ -43,44 +40,35 @@ class MainScreenState extends State<MainScreen> {
           LibraryScreen(player: player),
         ],
       ),
-      bottomNavigationBar:
-
-          // FutureBuilder<PaletteGenerator>(
-          //   future: getImageColors(player),
-          //   builder: (context, snapshot) {
-          //     final selectedColor =
-          //         snapshot.data?.lightMutedColor?.color ?? Colors.white;
-          //     return
-
-          Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[850],
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
+      bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[850],
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                  left: 8.0, right: 8.0, bottom: 8, top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(CupertinoIcons.square_grid_2x2, 'Home', 0,
+                      selectedNavColor),
+                  _buildNavItem(
+                      CupertinoIcons.search, 'Search', 1, selectedNavColor),
+                  _buildNavItem(
+                      Icons.library_music, 'Library', 2, selectedNavColor),
+                ],
               ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 8.0, right: 8.0, bottom: 8, top: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNavItem(CupertinoIcons.square_grid_2x2, 'Home', 0,
-                          selectedNavColor),
-                      _buildNavItem(
-                          CupertinoIcons.search, 'Search', 1, selectedNavColor),
-                      _buildNavItem(
-                          Icons.library_music, 'Library', 2, selectedNavColor),
-                    ],
-                  ),
-                ),
-              )
-              // ,
-              // );
-              //     },
-              ),
+            ),
+          )
+          // ,
+          // );
+          // },
+          ),
     );
   }
 
