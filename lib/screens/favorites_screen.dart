@@ -1,8 +1,8 @@
-// lib/screens/favorites_screen.dart
 import 'package:flutter/material.dart';
 import 'package:musicify/services/favorites_service.dart';
 import 'package:musicify/services/audio_service.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -70,8 +70,7 @@ class FavoritesScreenState extends State<FavoritesScreen> {
                     },
                   ),
                   onTap: () {
-                    // Play the selected song
-                    _audioService.playSong(song['id']);
+                    _playOrPauseSong(song);
                   },
                 ),
               );
@@ -80,5 +79,27 @@ class FavoritesScreenState extends State<FavoritesScreen> {
         },
       ),
     );
+  }
+
+  void _playOrPauseSong(Map<String, dynamic> song) async {
+    final currentlyPlayingSongId =
+        _audioService.player.current.value?.audio.audio.metas.id;
+    final isPlaying = _audioService.player.isPlaying.value;
+
+    if (currentlyPlayingSongId == song['id'] && isPlaying) {
+      await _audioService.player.pause();
+    } else if (currentlyPlayingSongId == song['id'] && !isPlaying) {
+      await _audioService.player.play();
+    } else {
+      final audio = Audio.file(
+        song['data'],
+        metas: Metas(
+          id: song['id'],
+          title: song['title'],
+          artist: song['artist'],
+        ),
+      );
+      await _audioService.player.open(audio, showNotification: true);
+    }
   }
 }
