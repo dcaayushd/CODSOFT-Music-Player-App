@@ -2,8 +2,10 @@
     <!-- Acess Storage -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <application
-        android:label="musicify"
+        android:label="Musicify"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
