@@ -263,70 +263,80 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Musicify',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          actions: [
-            IconButton(
-              icon: const Icon(CupertinoIcons.search, color: Colors.white),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                        fullscreenDialog: true,
-                        builder: (context) => SearchScreen(
-                              player: _audioService.player,
-                            )));
-              },
+    return StreamBuilder<Playing?>(
+        stream: _audioService.player.current,
+        builder: (context, snapshot) {
+          //!remove this
+          // if (snapshot.hasData && snapshot.data != null) {
+          //   _updateCurrentSong();
+          // }
+          return DefaultTabController(
+            length: 3,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text(
+                  'Musicify',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                centerTitle: true,
+                backgroundColor: Colors.transparent,
+                actions: [
+                  IconButton(
+                    icon:
+                        const Icon(CupertinoIcons.search, color: Colors.white),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              fullscreenDialog: true,
+                              builder: (context) => SearchScreen(
+                                    player: _audioService.player,
+                                  )));
+                    },
+                  ),
+                ],
+                bottom: TabBar(
+                  tabs: const [
+                    Tab(
+                        child: Text('Songs',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold))),
+                    Tab(
+                        child: Text('Artists',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold))),
+                    Tab(
+                        child: Text('Albums',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold))),
+                  ],
+                  labelColor: labelColor,
+                  unselectedLabelColor: unselectedLabelColor,
+                  indicatorColor: indicatorColor,
+                  dividerColor: Colors.transparent,
+                ),
+              ),
+              body: Stack(
+                children: [
+                  TabBarView(
+                    children: [
+                      _buildSongsList(),
+                      _buildArtistsList(),
+                      _buildAlbumsList(),
+                    ],
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _buildMiniPlayer(),
+                  ),
+                ],
+              ),
             ),
-          ],
-          bottom: TabBar(
-            tabs: const [
-              Tab(
-                  child: Text('Songs',
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold))),
-              Tab(
-                  child: Text('Artists',
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold))),
-              Tab(
-                  child: Text('Albums',
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold))),
-            ],
-            labelColor: labelColor,
-            unselectedLabelColor: unselectedLabelColor,
-            indicatorColor: indicatorColor,
-            dividerColor: Colors.transparent,
-          ),
-        ),
-        body: Stack(
-          children: [
-            TabBarView(
-              children: [
-                _buildSongsList(),
-                _buildArtistsList(),
-                _buildAlbumsList(),
-              ],
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _buildMiniPlayer(),
-            ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 
   Widget _buildMiniPlayer() {
@@ -475,43 +485,80 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
+  // void _playNextSong() {
+  //   if (isPlaying) {
+  //     _audioService.player.pause().then((_) {
+  //       _audioService.player.next().then((_) {
+  //         if (isPlaying) {
+  //           _audioService.player.play();
+  //         }
+  //         _updateCurrentSong();
+  //       });
+  //     });
+  //   } else {
+  //     _audioService.player.next().then((_) {
+  //       _updateCurrentSong();
+  //     });
+  //   }
+  // }
+
   void _playNextSong() {
-    if (isPlaying) {
-      _audioService.player.pause().then((_) {
-        _audioService.player.next().then((_) {
-          if (isPlaying) {
-            _audioService.player.play();
-          }
-          _updateCurrentSong();
-        });
-      });
-    } else {
-      _audioService.player.next().then((_) {
-        _updateCurrentSong();
-      });
+    if (currentSongIndex != null && currentSongIndex! < _songs.length - 1) {
+      currentSongIndex = currentSongIndex! + 1;
+      _audioService.player.open(
+        Audio.file(
+          _songs[currentSongIndex!].data,
+          metas: Metas(
+            id: _songs[currentSongIndex!].id.toString(),
+            title: _songs[currentSongIndex!].title,
+            artist: _songs[currentSongIndex!].artist,
+            album: _songs[currentSongIndex!].album,
+          ),
+        ),
+        showNotification: true,
+      );
+      _updateCurrentSong();
     }
   }
+
+  // void _updateCurrentSong() async {
+  //   final currentAudio = _audioService.player.current.value?.audio;
+  //   if (currentAudio != null) {
+  //     final songId = int.tryParse(currentAudio.audio.metas.id ?? '0');
+  //     if (songId != null) {
+  //       final song = _songs.firstWhere(
+  //         (song) => song.id == songId,
+  //         orElse: () => SongModel({
+  //           'id': 0,
+  //           'title': 'Unknown Title',
+  //           'artist': 'Unknown Artist',
+  //           'album': 'Unknown Album',
+  //           'data': '',
+  //         }),
+  //       );
+
+  //       setState(() {
+  //         displayedSong = song;
+  //         _updateColors();
+  //       });
+  //     }
+  //   }
+  // }
 
   void _updateCurrentSong() async {
     final currentAudio = _audioService.player.current.value?.audio;
     if (currentAudio != null) {
       final songId = int.tryParse(currentAudio.audio.metas.id ?? '0');
       if (songId != null) {
-        final song = _songs.firstWhere(
-          (song) => song.id == songId,
-          orElse: () => SongModel({
-            'id': 0,
-            'title': 'Unknown Title',
-            'artist': 'Unknown Artist',
-            'album': 'Unknown Album',
-            'data': '',
-          }),
-        );
-
-        setState(() {
-          displayedSong = song;
-          _updateColors();
-        });
+        final songIndex = _songs.indexWhere((song) => song.id == songId);
+        // if (songIndex != -1) {
+         if (songIndex != -1 && songIndex != currentSongIndex) {
+          setState(() {
+            displayedSong = _songs[songIndex];
+            currentSongIndex = songIndex;
+            _updateColors();
+          });
+        }
       }
     }
   }
