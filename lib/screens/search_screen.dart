@@ -4,9 +4,10 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:musicify/widgets/song_list_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/audio_service.dart';
+
 class SearchScreen extends StatefulWidget {
   final AssetsAudioPlayer player;
-
 
   const SearchScreen({
     super.key,
@@ -18,13 +19,14 @@ class SearchScreen extends StatefulWidget {
 }
 
 class SearchScreenState extends State<SearchScreen> {
+  final AudioService _audioService = AudioService();
   final OnAudioQuery _audioQuery = OnAudioQuery();
   List<SongModel> _songs = [];
   List<AlbumModel> _albums = [];
   List<SongModel> _filteredSongs = [];
   List<AlbumModel> _filteredAlbums = [];
   List<String> _recentSearches = [];
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
   @override
@@ -193,24 +195,37 @@ class SearchScreenState extends State<SearchScreen> {
                       song: _filteredSongs[index],
                       player: widget.player,
                       onTap: () async {
-                        await widget.player.open(
-                          Audio.file(
-                            _filteredSongs[index].data,
-                            metas: Metas(
-                              id: _filteredSongs[index].id.toString(),
-                              title: _filteredSongs[index].title,
-                              artist: _filteredSongs[index].artist,
-                              album: _filteredSongs[index].album,
-                            ),
-                          ),
-                          showNotification: true,
-                        );
-                        // widget.onSongSelected(_filteredSongs[index]);
-                        _saveRecentSearch(_searchController.text);
-                        Navigator.pop(context);
-                      }, 
+                        await _audioService.player.stop();
 
+                        int selectedIndex = _songs.indexWhere(
+                            (song) => song.id == _filteredSongs[index].id);
 
+                        if (selectedIndex != -1) {
+                          List<Audio> playlist = _songs
+                              .sublist(selectedIndex)
+                              .map((song) => Audio.file(
+                                    song.data,
+                                    metas: Metas(
+                                      id: song.id.toString(),
+                                      title: song.title,
+                                      artist: song.artist,
+                                      album: song.album,
+                                    ),
+                                  ))
+                              .toList();
+
+                          await _audioService.player.open(
+                            Playlist(audios: playlist),
+                            showNotification: true,
+                          );
+
+                          _saveRecentSearch(_searchController.text);
+
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context, _filteredSongs[index]);
+                          }
+                        }
+                      },
                     );
                   },
                 ),
