@@ -1,24 +1,22 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:on_audio_query/on_audio_query.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
-import 'dart:ui';
 import 'dart:math' as math;
+import 'dart:ui';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'package:musicify/screens/player_screen.dart';
-import 'package:musicify/screens/search_screen.dart';
-
-import 'package:musicify/services/audio_service.dart';
-import 'package:musicify/utils/audio_state.dart';
-import 'package:musicify/utils/utils.dart';
-
-import 'package:musicify/widgets/album_grid_item.dart';
-import 'package:musicify/widgets/artist_list_item.dart';
-import 'package:musicify/widgets/song_list_item.dart';
+import '../screens/player_screen.dart';
+import '../screens/search_screen.dart';
+import '../services/audio_service.dart';
+import '../utils/audio_state.dart';
+import '../utils/utils.dart';
+import '../widgets/album_grid_item.dart';
+import '../widgets/artist_list_item.dart';
+import '../widgets/song_list_item.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
