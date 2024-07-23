@@ -367,6 +367,7 @@ class _HomeScreenState extends State<HomeScreen>
           );
         });
   }
+
   Widget _buildMiniPlayer() {
     return displayedSong == null
         ? const SizedBox.shrink()
@@ -512,9 +513,10 @@ class _HomeScreenState extends State<HomeScreen>
                                         bottom: Radius.circular(20)),
                                     child: LinearProgressIndicator(
                                       value: progress,
-                                      backgroundColor: Colors.grey[700],
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          progressColor),
+                                      backgroundColor:
+                                          progressColor.withOpacity(.1),
+                                      valueColor: const AlwaysStoppedAnimation<Color>(
+                                          Colors.grey),
                                       minHeight: 3,
                                     ),
                                   );
