@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:musicify/utils/utils.dart';
+import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+
+import '../utils/utils.dart';
 
 class AlbumScreen extends StatelessWidget {
   final AlbumModel album;

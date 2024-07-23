@@ -1,8 +1,8 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:musicify/screens/favorites_screen.dart';
-import 'package:musicify/screens/playlist_screen.dart';
+import '../screens/favorites_screen.dart';
+import '../screens/playlist_screen.dart';
 
 class LibraryScreen extends StatelessWidget {
   final AssetsAudioPlayer player;

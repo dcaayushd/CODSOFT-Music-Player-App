@@ -1,10 +1,11 @@
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:musicify/screens/home_screen.dart';
-import 'package:musicify/screens/library_screen.dart';
-import 'package:musicify/screens/search_screen.dart';
-import 'package:musicify/utils/utils.dart';
+
+import '../screens/home_screen.dart';
+import '../screens/library_screen.dart';
+import '../screens/search_screen.dart';
+import '../utils/utils.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

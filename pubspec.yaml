@@ -12,6 +12,7 @@ dependencies:
   file_picker: ^8.0.6
   flutter:
     sdk: flutter
+  image_picker: ^1.1.2
   on_audio_query: ^2.9.0
   palette_generator: ^0.3.3+2
   permission_handler: ^11.3.1

@@ -1,18 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
-import 'package:musicify/services/audio_service.dart';
-import 'package:musicify/services/playlist_service.dart';
-
-import 'package:musicify/utils/audio_state.dart';
-import 'package:musicify/utils/utils.dart';
-
+import '../services/audio_service.dart';
 import '../services/favorites_service.dart';
+import '../services/playlist_service.dart';
+import '../utils/audio_state.dart';
+import '../utils/utils.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({super.key, required AssetsAudioPlayer player});

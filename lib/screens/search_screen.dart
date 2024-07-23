@@ -1,10 +1,10 @@
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:musicify/widgets/song_list_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/audio_service.dart';
+import '../widgets/song_list_item.dart';
 
 class SearchScreen extends StatefulWidget {
   final AssetsAudioPlayer player;
