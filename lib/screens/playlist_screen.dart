@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:musicify/screens/playlist_song_screen.dart';
+import 'package:flutter/material.dart';
 
+import '../screens/playlist_song_screen.dart';
 import '../services/playlist_service.dart';
 
 class PlaylistScreen extends StatefulWidget {
