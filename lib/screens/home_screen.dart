@@ -291,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen>
     return StreamBuilder<Playing?>(
         stream: _audioService.player.current,
         builder: (context, snapshot) {
-                 return DefaultTabController(
+          return DefaultTabController(
             length: 3,
             child: Scaffold(
               appBar: AppBar(
@@ -369,13 +369,14 @@ class _HomeScreenState extends State<HomeScreen>
           );
         });
   }
-
   Widget _buildMiniPlayer() {
     return displayedSong == null
         ? const SizedBox.shrink()
         : FutureBuilder<PaletteGenerator>(
             future: getImageColors(_audioService.player),
             builder: (context, snapshot) {
+              final progressColor =
+                  snapshot.data?.lightMutedColor?.color ?? Colors.white;
               return GestureDetector(
                 onHorizontalDragEnd: (details) => _handleSwipe(details),
                 child: Container(
@@ -401,92 +402,128 @@ class _HomeScreenState extends State<HomeScreen>
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         color: Colors.black.withOpacity(0.1),
-                        child: ListTile(
-                          leading: AnimatedBuilder(
-                            animation: _animationController,
-                            builder: (_, child) {
-                              if (!isPlaying) {
-                                _animationController.stop();
-                              } else {
-                                _animationController.forward();
-                                _animationController.repeat();
-                              }
-                              return Transform.rotate(
-                                angle: _animationController.value * 2 * math.pi,
-                                child: child,
-                              );
-                            },
-                            child: ClipOval(
-                              child: SizedBox(
-                                width: 50,
-                                height: 50,
-                                child: QueryArtworkWidget(
-                                  id: displayedSong!.id,
-                                  type: ArtworkType.AUDIO,
-                                  artworkBorder: BorderRadius.circular(30),
-                                  nullArtworkWidget: Container(
+                        child: Stack(
+                          children: [
+                            ListTile(
+                              leading: AnimatedBuilder(
+                                animation: _animationController,
+                                builder: (_, child) {
+                                  if (!isPlaying) {
+                                    _animationController.stop();
+                                  } else {
+                                    _animationController.forward();
+                                    _animationController.repeat();
+                                  }
+                                  return Transform.rotate(
+                                    angle: _animationController.value *
+                                        2 *
+                                        math.pi,
+                                    child: child,
+                                  );
+                                },
+                                child: ClipOval(
+                                  child: SizedBox(
                                     width: 50,
                                     height: 50,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.grey,
+                                    child: QueryArtworkWidget(
+                                      id: displayedSong!.id,
+                                      type: ArtworkType.AUDIO,
+                                      artworkBorder: BorderRadius.circular(30),
+                                      nullArtworkWidget: Container(
+                                        width: 50,
+                                        height: 50,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.grey,
+                                        ),
+                                        child: const Icon(Icons.music_note,
+                                            color: Colors.white),
+                                      ),
                                     ),
-                                    child: const Icon(Icons.music_note,
-                                        color: Colors.white),
                                   ),
                                 ),
                               ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    fullscreenDialog: true,
+                                    builder: (context) => PlayerScreen(
+                                      player: _audioService.player,
+                                    ),
+                                  ),
+                                );
+                              },
+                              title: Text(
+                                displayedSong!.title,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              subtitle: Text(
+                                displayedSong!.artist ?? 'Unknown Artist',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Colors.white.withOpacity(0.7)),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () async {
+                                      await _audioService.player.playOrPause();
+                                    },
+                                    icon: Icon(
+                                      isPlaying
+                                          ? CupertinoIcons.pause
+                                          : CupertinoIcons.play_arrow,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () async {
+                                      await _audioService.player.next();
+                                      _updateCurrentSong();
+                                    },
+                                    icon: const Icon(
+                                      CupertinoIcons.forward_end,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                fullscreenDialog: true,
-                                builder: (context) => PlayerScreen(
-                                  player: _audioService.player,
-                                ),
-                              ),
-                            );
-                          },
-                          title: Text(
-                            displayedSong!.title,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          subtitle: Text(
-                            displayedSong!.artist ?? 'Unknown Artist',
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                                TextStyle(color: Colors.white.withOpacity(0.7)),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () async {
-                                  await _audioService.player.playOrPause();
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: StreamBuilder<Duration>(
+                                stream: _audioService.player.currentPosition,
+                                builder: (context, snapshot) {
+                                  final position =
+                                      snapshot.data ?? Duration.zero;
+                                  final duration = _audioService.player.current
+                                          .value?.audio.duration ??
+                                      Duration.zero;
+                                  final progress = duration.inMilliseconds > 0
+                                      ? position.inMilliseconds /
+                                          duration.inMilliseconds
+                                      : 0.0;
+                                  return ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                        bottom: Radius.circular(20)),
+                                    child: LinearProgressIndicator(
+                                      value: progress,
+                                      backgroundColor: Colors.grey[700],
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          progressColor),
+                                      minHeight: 3,
+                                    ),
+                                  );
                                 },
-                                icon: Icon(
-                                  isPlaying
-                                      ? CupertinoIcons.pause
-                                      : CupertinoIcons.play_arrow,
-                                  color: Colors.white,
-                                ),
                               ),
-                              IconButton(
-                                onPressed: () async {
-                                  await _audioService.player.next();
-                                  _updateCurrentSong();
-                                },
-                                icon: const Icon(
-                                  CupertinoIcons.forward_end,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
