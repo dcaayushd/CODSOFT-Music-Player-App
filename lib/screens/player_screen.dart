@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -69,16 +68,18 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
 
     _audioService.player.current.listen((playingAudio) {
-      if (mounted) {
-        setState(() {
-          currentArtworkId =
-              _audioService.player.current.value?.audio.audio.metas.id;
-          currentTitle = _audioService.player.getCurrentAudioTitle;
-          _startScrollingTitle();
-        });
-        AudioState().notifyAudioStateChanged();
-      }
-    });
+  if (mounted && playingAudio != null) {
+    final newArtworkId = playingAudio.audio.audio.metas.id;
+    if (newArtworkId != currentArtworkId) {
+      setState(() {
+        currentArtworkId = newArtworkId;
+        currentTitle = _audioService.player.getCurrentAudioTitle;
+        _startScrollingTitle();
+      });
+      AudioState().notifyAudioStateChanged();
+    }
+  }
+});
     _audioService.player.playlistAudioFinished.listen((finished) {
       if (finished == true) {
         _audioService.player.next();
@@ -331,7 +332,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             child: Column(
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.8,
+                  width: MediaQuery.of(context).size.width,
                   height: 30,
                   child: currentTitle != null &&
                           currentTitle!.split(' ').length > 3
@@ -419,7 +420,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                     child: SizedBox(
                       width: 280,
                       height: 280,
-                      child: QueryArtworkWidget(
+                      child:
+                          QueryArtworkWidget(
+                        key: ValueKey(currentArtworkId),
                         id: int.tryParse(currentArtworkId ?? '0') ?? 0,
                         type: ArtworkType.AUDIO,
                         artworkBorder: BorderRadius.circular(140),
