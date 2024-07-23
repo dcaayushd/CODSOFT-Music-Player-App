@@ -10,6 +10,12 @@
 	<array>
 		<string>audio</string>
 	</array>
+
+    <key>NSCameraUsageDescription</key>
+    <string>Your app needs access to the camera to take photos and videos.</string>
+    
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Your app needs access to the photo library to select photos and videos.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
