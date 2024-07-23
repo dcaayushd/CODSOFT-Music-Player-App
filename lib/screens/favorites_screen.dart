@@ -20,6 +20,7 @@ class FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text('Favorites'),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
