@@ -33,6 +33,10 @@ Musicify is a feature-rich music player application built with Flutter. It provi
 4. Install dependencies: `flutter pub get`
 5. Run the app: `flutter run`
 
+## Screenshots
+
+![App SS](screenshots/app_ss.jpg)
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
