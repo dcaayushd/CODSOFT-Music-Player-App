@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:musicify/services/favorites_service.dart';
-import 'package:musicify/services/audio_service.dart';
-import 'package:on_audio_query/on_audio_query.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:flutter/material.dart';
+import 'package:on_audio_query/on_audio_query.dart';
+
+import '../services/audio_service.dart';
+import '../services/favorites_service.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
